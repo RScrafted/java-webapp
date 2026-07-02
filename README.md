@@ -54,6 +54,13 @@ Output:
 target/rs-shoe-apparel.war
 ```
 
+## SCP Command
+
+```bash
+scp target/rs-shoe-apparel.war \
+tomcat@<server-ip>:/path/to/apache-tomcat/webapps/
+```
+
 ## Restart Tomcat
 
 Restart your Tomcat service after copying the WAR.
