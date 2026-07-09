@@ -17,7 +17,9 @@ pipeline {
     
     environment {
         APP_NAME = 'rs-shoe-apparel' // reference to pom.xml
-    }
+        TOMCAT_CREDS = credentials('tomcat-manager-creds')
+        // Note: TOMCAT_SERVER_IP and TOMCAT_SERVER_PORT environment variables must be configured globally 
+        // in Jenkins under Manage Jenkins -> System -> Global properties
 
     stages {
         // Continuous Integration
@@ -49,6 +51,18 @@ pipeline {
                     // Save the WAR as a Jenkins build artifact; fingerprint enables tracking across builds/jobs.
                     archiveArtifacts artifacts: 'target/*-v1.0.*.war', fingerprint: true
                 }
+            }
+        }
+        // Continuous Deployment
+        stage('Deploy to Tomcat') {
+            steps {
+                echo 'Deploying standard war file via overwrite strategy...'
+                // Uses the standard war name so Tomcat performs an in-place overwrite
+                sh '''
+                    curl -u ${TOMCAT_CREDS_USR}:${TOMCAT_CREDS_PSW} \
+                    -T target/${APP_NAME}.war \
+                    "http://${TOMCAT_SERVER_IP}:${TOMCAT_SERVER_PORT}/manager/text/deploy?path=/${APP_NAME}&update=true"
+                '''
             }
         }
     }
