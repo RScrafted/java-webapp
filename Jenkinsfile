@@ -66,6 +66,23 @@ pipeline {
                 '''
             }
         }
+        stage('Smoke Test') {
+            steps {
+                echo "Validating deployment endpoint health..."
+                // Ensures the pipeline fails immediately if Tomcat returns a 404 or 500
+                sh '''
+                    curl -fs "http://${TOMCAT_SERVER_IP}:${TOMCAT_SERVER_PORT}/${APP_NAME}/" || exit 1
+                '''
+            }
+            post {
+                success {
+                    echo "Smoke test passed. Application context is healthy."
+                }
+                failure {
+                    echo "ERROR: Smoke test failed! Application context is unreachable or returned an error code."
+                }
+            }
+        }
     }
 
     post {
