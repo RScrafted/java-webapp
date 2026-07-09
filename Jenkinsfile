@@ -2,24 +2,25 @@ pipeline {
     agent {
         label 'built-in'
     }
-    
+
     // Using Maven via Global Configuration
     // Tells Jenkins to auto-install and use this Maven version configured in Global Tool Configuration
     tools {
         maven 'Maven-3.9.16'
     }
-    
+
     options {
         // Keeps the Jenkins server from running out of disk space
         buildDiscarder(logRotator(numToKeepStr: '10'))
         timestamps()
     }
-    
+
     environment {
         APP_NAME = 'rs-shoe-apparel' // reference to pom.xml
         TOMCAT_CREDS = credentials('tomcat-manager-creds')
         // Note: TOMCAT_SERVER_IP and TOMCAT_SERVER_PORT environment variables must be configured globally 
         // in Jenkins under Manage Jenkins -> System -> Global properties
+    }
 
     stages {
         // Continuous Integration
@@ -40,7 +41,7 @@ pipeline {
                 // Reuses the compilation from above, speeding up the build
                 echo "Building standard war package."
                 sh 'mvn package -DskipTests'
-                
+
                 echo "Injecting build number into artifact name for tracking."
                 // Renames the compiled war file to include the Jenkins build number
                 sh "cp target/${APP_NAME}.war target/${APP_NAME}-v1.0.${BUILD_NUMBER}.war"
@@ -66,7 +67,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
             echo 'Pipeline has finished.'
