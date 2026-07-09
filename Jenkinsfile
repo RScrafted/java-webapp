@@ -15,6 +15,10 @@ pipeline {
         timestamps()
     }
     
+    environment {
+        APP_NAME = 'rs-shoe-apparel' // reference to pom.xml
+    }
+
     stages {
         // Continuous Integration
         stage('Checkout') {
@@ -32,7 +36,19 @@ pipeline {
         stage('Build & Package') {
             steps {
                 // Reuses the compilation from above, speeding up the build
+                echo "Building standard war package."
                 sh 'mvn package -DskipTests'
+                
+                echo "Injecting build number into artifact name for tracking."
+                // Renames the compiled war file to include the Jenkins build number
+                sh "cp target/${APP_NAME}.war target/${APP_NAME}-v1.0.${BUILD_NUMBER}.war"
+            }
+            post {
+                success {
+                    echo 'Archiving production-ready WAR file to Jenkins controller.'
+                    // Save the WAR as a Jenkins build artifact; fingerprint enables tracking across builds/jobs.
+                    archiveArtifacts artifacts: 'target/*-v1.0.*.war', fingerprint: true
+                }
             }
         }
     }
